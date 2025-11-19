@@ -3,12 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"golang.org/x/term"
 	"log"
 	"os"
+	"os/user"
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"golang.org/x/term"
 )
 
 type FileNode struct {
@@ -16,6 +18,11 @@ type FileNode struct {
 	Path     string
 	IsDir    bool
 	Children []*FileNode
+}
+
+func userHome() (string, error) {
+	currentUser, err := user.Current()
+	return currentUser.HomeDir, err
 }
 
 func isIncludeFdr(str string, lst []string) bool {
@@ -120,6 +127,15 @@ func mulStr(str string, mul int) string {
 	return s
 }
 
+func PrivateRemover(path string) string {
+	h, e := userHome()
+	if e != nil {
+		h = ""
+	}
+	res := strings.ReplaceAll(path, h, "~")
+	return res
+}
+
 func printFiles(node *FileNode) {
 	var x int
 	fd := int(os.Stdout.Fd())
@@ -136,7 +152,7 @@ func printFiles(node *FileNode) {
 	if !node.IsDir {
 		cont, _ := os.ReadFile(node.Path)
 		line := mulStr("─", x)
-		fmt.Printf("%s\n%s\n%s\n%s\n", line, node.Path, line, &cont)
+		fmt.Printf("%s\n%s\n%s\n%s\n", line, PrivateRemover(node.Path), line, &cont)
 	}
 
 	// fmt.Printf("%s\n")
@@ -149,7 +165,7 @@ func printFiles(node *FileNode) {
 				continue
 			}
 			line := mulStr("─", x)
-			fmt.Printf("%s\n%s\n%s\n%s\n", line, child.Path, line, &cont)
+			fmt.Printf("%s\n%s\n%s\n%s\n", line, PrivateRemover(child.Path), line, &cont)
 		}
 	}
 
