@@ -3,7 +3,7 @@
 ## test
 
 ```bash
-ls
+❯ ls
 go.mod  go.sum  LICENSE  main.go  README.md
 
 
