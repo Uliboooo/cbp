@@ -3,6 +3,10 @@
 ## test
 
 ```bash
+ls
+go.mod  go.sum  LICENSE  main.go  README.md
+
+
 ❯ go run . -ignore_ext "go,sum,md"
 cbp/
 └─ go.mod
