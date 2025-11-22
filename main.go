@@ -170,44 +170,12 @@ func printFiles(node *FileNode) {
 	for _, child := range node.Children {
 		printFiles(child)
 	}
-
-	// if node == nil {
-	// 	return
-	// }
-	//
-	// if !node.IsDir {
-	// 	cont, _ := os.ReadFile(node.Path)
-	// 	line := mulStr("─", x)
-	// 	fmt.Printf("%s\n%s\n%s\n%s\n", line, PrivateRemover(node.Path), line, cont)
-	// }
-	//
-	// // fmt.Printf("%s\n")
-	// for _, child := range node.Children {
-	// 	if child.IsDir {
-	// 		printFiles(child)
-	// 	} else {
-	// 		cont, err := os.ReadFile(child.Path)
-	// 		if err != nil {
-	// 			continue
-	// 		}
-	// 		line := mulStr("─", x)
-	// 		fmt.Printf("%s\n%s\n%s\n%s\n", line, PrivateRemover(child.Path), line, cont)
-	// 	}
-	// }
 }
 
 func isBin(content []byte) bool {
-	checkLen := 1024
-	if len(content) < checkLen {
-		checkLen = len(content)
-	}
+	checkLen := min(len(content), 1024)
 
-	for _, b := range content[:checkLen] {
-		if b == 0 {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(content[:checkLen], 0)
 }
 
 func main() {
