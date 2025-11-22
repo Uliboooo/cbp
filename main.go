@@ -74,13 +74,13 @@ func buildTree(path string, ignoreExt []string, ignoreFdr []string) (*FileNode, 
 			continue
 		}
 		chilePath := filepath.Join(path, e.Name())
-		childNode, err := buildTree(chilePath, ignoreExt, ignoreFdr)
+		childPath, err := buildTree(chilePath, ignoreExt, ignoreFdr)
 		if err != nil {
 			log.Printf("errr in process child node: %v", err)
 			continue
 		}
-		if childNode != nil {
-			node.Children = append(node.Children, childNode)
+		if childPath != nil {
+			node.Children = append(node.Children, childPath)
 		}
 	}
 
@@ -106,7 +106,9 @@ func printTree(node *FileNode, prefix string) {
 
 		newPrefix := prefix + ""
 		if isLast {
-			newPrefix = prefix + ""
+			newPrefix += prefix + "    "
+		} else {
+			newPrefix += "│   "
 		}
 
 		currentPrefix := "├─ "
@@ -137,57 +139,68 @@ func PrivateRemover(path string) string {
 }
 
 func printFiles(node *FileNode) {
-	var x int
-	fd := int(os.Stdout.Fd())
-	if !term.IsTerminal(fd) {
-		x = 20
-	}
-	width, _, _ := term.GetSize(fd)
-	x = width / 2
-
 	if node == nil {
 		return
 	}
 
 	if !node.IsDir {
-		cont, _ := os.ReadFile(node.Path)
-		line := mulStr("─", x)
-		fmt.Printf("%s\n%s\n%s\n%s\n", line, PrivateRemover(node.Path), line, &cont)
-	}
-
-	// fmt.Printf("%s\n")
-	for _, child := range node.Children {
-		if child.IsDir {
-			printFiles(child)
+		var x int
+		fd := int(os.Stdout.Fd())
+		if !term.IsTerminal(fd) {
+			x = 20
 		} else {
-			cont, err := os.ReadFile(child.Path)
-			if err != nil {
-				continue
-			}
-			line := mulStr("─", x)
-			fmt.Printf("%s\n%s\n%s\n%s\n", line, PrivateRemover(child.Path), line, &cont)
+			width, _, _ := term.GetSize(fd)
+			x = width / 2
 		}
+
+		cont, err := os.ReadFile(node.Path)
+		if err != nil {
+			return
+		}
+		line := mulStr("-", x)
+		fmt.Printf("%s\n%s\n%s\n%s\n", line, PrivateRemover(node.Path), line, cont)
+		return
 	}
 
+	for _, child := range node.Children {
+		printFiles(child)
+	}
+
+	// if node == nil {
+	// 	return
+	// }
+	//
+	// if !node.IsDir {
+	// 	cont, _ := os.ReadFile(node.Path)
+	// 	line := mulStr("─", x)
+	// 	fmt.Printf("%s\n%s\n%s\n%s\n", line, PrivateRemover(node.Path), line, cont)
+	// }
+	//
+	// // fmt.Printf("%s\n")
+	// for _, child := range node.Children {
+	// 	if child.IsDir {
+	// 		printFiles(child)
+	// 	} else {
+	// 		cont, err := os.ReadFile(child.Path)
+	// 		if err != nil {
+	// 			continue
+	// 		}
+	// 		line := mulStr("─", x)
+	// 		fmt.Printf("%s\n%s\n%s\n%s\n", line, PrivateRemover(child.Path), line, cont)
+	// 	}
+	// }
 }
 
 func main() {
 	igExtPtr := flag.String("ignore_ext", "", "ignore extensions")
 	igFldPtr := flag.String("ignore_fld", "", "ignore folders")
-	includeGitPrt := flag.Bool("git", false, "")
-
-	// pathPtr := flag.String("path", "", "")
-
 	flag.Parse()
-
-	includeGit := *includeGitPrt
 
 	igExt := strings.Split(*igExtPtr, ",")
 	igFdr := strings.Split(*igFldPtr, ",")
 
-	if !includeGit {
-		igFdr = append(igFdr, ".git")
-	}
+	// Force add .git
+	igFdr = append(igFdr, ".git")
 
 	posiArgs := flag.Args()
 
