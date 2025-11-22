@@ -56,7 +56,7 @@ func buildTree(path string, ignoreExt []string, ignoreFdr []string, filtExt []st
 		if isIncludeEx(node.Name, ignoreExt) {
 			return nil, nil
 		}
-		if !isIncludeEx(node.Name, filtExt) {
+		if len(filtExt) > 0 && !isIncludeEx(node.Name, filtExt) {
 			return nil, nil
 		}
 		// node.Name = filepath.Base(path)
@@ -190,7 +190,11 @@ func main() {
 
 	igExt := strings.Split(*igExtPtr, ",")
 	igFdr := strings.Split(*igFldPtr, ",")
-	fiExt := strings.Split(*filtExPtr, ",")
+
+	var fiExt []string
+	if *filtExPtr != "" {
+		fiExt = strings.Split(*filtExPtr, ",")
+	}
 
 	// Force add .git
 	igFdr = append(igFdr, ".git")
