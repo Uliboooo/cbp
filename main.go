@@ -39,7 +39,7 @@ func isIncludeEx(str string, lst []string) bool {
 	return res
 }
 
-func buildTree(path string, ignoreExt []string, ignoreFdr []string) (*FileNode, error) {
+func buildTree(path string, ignoreExt []string, ignoreFdr []string, filtExt []string) (*FileNode, error) {
 	node := &FileNode{
 		Name:  filepath.Base(path),
 		Path:  path,
@@ -54,6 +54,9 @@ func buildTree(path string, ignoreExt []string, ignoreFdr []string) (*FileNode, 
 
 	if !node.IsDir {
 		if isIncludeEx(node.Name, ignoreExt) {
+			return nil, nil
+		}
+		if !isIncludeEx(node.Name, filtExt) {
 			return nil, nil
 		}
 		// node.Name = filepath.Base(path)
@@ -74,7 +77,7 @@ func buildTree(path string, ignoreExt []string, ignoreFdr []string) (*FileNode, 
 			continue
 		}
 		chilePath := filepath.Join(path, e.Name())
-		childPath, err := buildTree(chilePath, ignoreExt, ignoreFdr)
+		childPath, err := buildTree(chilePath, ignoreExt, ignoreFdr, filtExt)
 		if err != nil {
 			log.Printf("errr in process child node: %v", err)
 			continue
@@ -181,16 +184,20 @@ func isBin(content []byte) bool {
 func main() {
 	igExtPtr := flag.String("ignore_ext", "", "ignore extensions")
 	igFldPtr := flag.String("ignore_fld", "", "ignore folders")
+	filtExPtr := flag.String("filter_ext", "", "filter extensions")
+
 	flag.Parse()
 
 	igExt := strings.Split(*igExtPtr, ",")
 	igFdr := strings.Split(*igFldPtr, ",")
+	fiExt := strings.Split(*filtExPtr, ",")
 
 	// Force add .git
 	igFdr = append(igFdr, ".git")
 
 	posiArgs := flag.Args()
 
+	// positional arg as path
 	var path string
 	if flag.NArg() == 0 {
 		p, e := os.Getwd()
@@ -202,7 +209,7 @@ func main() {
 		path = posiArgs[0]
 	}
 
-	nodes, err := buildTree(path, igExt, igFdr)
+	nodes, err := buildTree(path, igExt, igFdr, fiExt)
 	if err != nil {
 		fmt.Printf("Error: %v", err)
 		os.Exit(1)

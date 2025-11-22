@@ -1,8 +1,14 @@
 # CodeBasePrinter
 
+current version: 0.2.0
+
 ## TODO
 
-- [ ] Use Code block "```"
+? is a feature whose implementation is undecided.
+
+- [ ] Use Code block \`\`\`
+- [ ] Hide folder name without files in tree
+- [ ] Send OS clipboard?
 
 ## test
 
