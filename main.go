@@ -106,7 +106,7 @@ func printTree(node *FileNode, prefix string) {
 
 		newPrefix := prefix + ""
 		if isLast {
-			newPrefix += prefix + "    "
+			newPrefix += "    "
 		} else {
 			newPrefix += "│   "
 		}
@@ -157,6 +157,11 @@ func printFiles(node *FileNode) {
 		if err != nil {
 			return
 		}
+
+		if isBin(cont) {
+			return
+		}
+
 		line := mulStr("-", x)
 		fmt.Printf("%s\n%s\n%s\n%s\n", line, PrivateRemover(node.Path), line, cont)
 		return
@@ -189,6 +194,20 @@ func printFiles(node *FileNode) {
 	// 		fmt.Printf("%s\n%s\n%s\n%s\n", line, PrivateRemover(child.Path), line, cont)
 	// 	}
 	// }
+}
+
+func isBin(content []byte) bool {
+	checkLen := 1024
+	if len(content) < checkLen {
+		checkLen = len(content)
+	}
+
+	for _, b := range content[:checkLen] {
+		if b == 0 {
+			return true
+		}
+	}
+	return false
 }
 
 func main() {
