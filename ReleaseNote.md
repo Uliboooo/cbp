@@ -1,5 +1,9 @@
 # Release note
 
+## 0.6.0: new feature; version option
+
+- show version option
+
 ## 0.5.0: new feature; no-tree option
 
 - add an option to hide the Tree

@@ -211,14 +211,25 @@ func truncateTokens(s string, limit int) (*string, error) {
 	return &res, nil
 }
 
+var Version string
+
 func main() {
 	igExtPtr := flag.String("ignore-ext", "", "ignore extensions")
 	igFldPtr := flag.String("ignore-fld", "", "ignore folders")
 	filtExPtr := flag.String("filter-ext", "", "filter extensions")
 	tokenLimit := flag.Int("token-limit", -1, "token limit")
 	noTree := flag.Bool("no-tree", false, "no tree show")
+	ver := flag.Bool("version", false, "show current version")
 
 	flag.Parse()
+
+	if *ver {
+		if Version == "" {
+			Version = "dev"
+		}
+		fmt.Printf("current version: %s\n", Version)
+		os.Exit(0)
+	}
 
 	igExt := strings.Split(*igExtPtr, ",")
 	igFdr := strings.Split(*igFldPtr, ",")

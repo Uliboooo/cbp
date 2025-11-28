@@ -1,6 +1,13 @@
 # CodeBasePrinter
 
-current version: 0.5.0
+current version: 0.6.0
+
+## build notice
+
+```zsh
+V=$(git describe --tags --always) 
+go build -ldflags="-X 'main.Version=${V}'" -o cbp
+```
 
 ## TODO
 
@@ -25,6 +32,8 @@ Usage of cbp:
         no tree show
   -token-limit int
         token limit (default -1)
+  -version
+        show current version
 ```
 
 ```bash
