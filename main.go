@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/pkoukk/tiktoken-go"
 	"golang.org/x/term"
 )
 
@@ -90,36 +91,42 @@ func buildTree(path string, ignoreExt []string, ignoreFdr []string, filtExt []st
 	return node, nil
 }
 
-func printTree(node *FileNode, prefix string) {
+func formatTree(node *FileNode) string {
+	var builder strings.Builder
+	formatTreeRec(node, "", &builder)
+	return builder.String()
+
+}
+
+func formatTreeRec(node *FileNode, prefix string, builder *strings.Builder) {
 	if node == nil {
 		return
 	}
-
-	// 表示する名前を作成
 	name := node.Name
 	if node.IsDir {
-		// ディレクトリ名は装飾
-		name = fmt.Sprintf("\033[34m%s/\033[0m", name) // 青色で表示
+		name = fmt.Sprintf("\033[34m%s/\033[0m", name)
 	}
 
-	fmt.Printf("%s%s\n", prefix, name)
+	builder.WriteString(prefix)
+	builder.WriteString(name)
+	builder.WriteString("\n")
 
 	for i, child := range node.Children {
 		isLast := i == len(node.Children)-1
 
-		newPrefix := prefix + ""
+		var newPrefix string
 		if isLast {
-			newPrefix += "    "
+			newPrefix = prefix + "  "
 		} else {
-			newPrefix += "│   "
+			newPrefix = prefix + "│ "
 		}
 
-		currentPrefix := "├─ "
+		currentPrefix := "│─"
 		if isLast {
-			currentPrefix = "└─ "
+			currentPrefix = "└─"
 		}
 
-		printTree(child, newPrefix+currentPrefix)
+		formatTreeRec(child, newPrefix+currentPrefix, builder)
 	}
 }
 
@@ -141,7 +148,13 @@ func PrivateRemover(path string) string {
 	return res
 }
 
-func printFiles(node *FileNode) {
+func formatFiles(node *FileNode) string {
+	var builder strings.Builder
+	formatFilesRec(node, &builder)
+	return builder.String()
+}
+
+func formatFilesRec(node *FileNode, builder *strings.Builder) {
 	if node == nil {
 		return
 	}
@@ -166,13 +179,14 @@ func printFiles(node *FileNode) {
 		}
 
 		line := mulStr("-", x)
-		fmt.Printf("%s\n%s\n%s\n%s\n", line, PrivateRemover(node.Path), line, cont)
+		fmt.Fprintf(builder, "%s\n%s\n%s\n%s\n", line, PrivateRemover(node.Path), line, cont)
 		return
 	}
 
 	for _, child := range node.Children {
-		printFiles(child)
+		formatFilesRec(child, builder)
 	}
+
 }
 
 func isBin(content []byte) bool {
@@ -181,10 +195,27 @@ func isBin(content []byte) bool {
 	return slices.Contains(content[:checkLen], 0)
 }
 
+func truncateTokens(s string, limit int) (*string, error) {
+	tkm, err := tiktoken.EncodingForModel("gpt-4")
+	if err != nil {
+		return nil, err
+	}
+
+	token := tkm.Encode(s, nil, nil)
+
+	if len(token) <= limit {
+		return &s, nil
+	}
+	truncatedToekns := token[:limit]
+	res := tkm.Decode(truncatedToekns)
+	return &res, nil
+}
+
 func main() {
-	igExtPtr := flag.String("ignore_ext", "", "ignore extensions")
-	igFldPtr := flag.String("ignore_fld", "", "ignore folders")
-	filtExPtr := flag.String("filter_ext", "", "filter extensions")
+	igExtPtr := flag.String("ignore-ext", "", "ignore extensions")
+	igFldPtr := flag.String("ignore-fld", "", "ignore folders")
+	filtExPtr := flag.String("filter-ext", "", "filter extensions")
+	tokenLimit := flag.Int("token-limit", -1, "token limit")
 
 	flag.Parse()
 
@@ -219,6 +250,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	printTree(nodes, "")
-	printFiles(nodes)
+	// printTree(nodes, "")
+	formatedTree := formatTree(nodes)
+	formatedCodeBase := formatFiles(nodes)
+	res := formatedTree + "\n" + formatedCodeBase
+
+	printRes := res
+	if *tokenLimit >= 0 {
+		counted, err := truncateTokens(res, *tokenLimit)
+		if err != nil {
+			fmt.Printf("Error: %v", err)
+			os.Exit(1)
+		}
+		printRes = *counted
+		// fmt.Printf("%d", counted)
+	}
+	fmt.Printf("%s\n", printRes)
 }

@@ -1,6 +1,6 @@
 # CodeBasePrinter
 
-current version: 0.2.0
+current version: 0.4.0
 
 ## TODO
 
@@ -8,9 +8,22 @@ current version: 0.2.0
 
 - [ ] Use Code block \`\`\`
 - [ ] Hide folder name without files in tree
-- [ ] Send OS clipboard?
+- [ ] ~~Send OS clipboard?~~
+    - The combination of pipe and pbcopy is sufficient.
 
 ## Usage
+
+```bash
+Usage of cbp:
+  -filter-ext string
+        filter extensions
+  -ignore-ext string
+        ignore extensions
+  -ignore-fld string
+        ignore folders
+  -token-limit int
+        token limit (default -1)
+```
 
 ```bash
 cbp -ignore_ext "go,sum,md"
