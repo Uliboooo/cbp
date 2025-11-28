@@ -216,6 +216,7 @@ func main() {
 	igFldPtr := flag.String("ignore-fld", "", "ignore folders")
 	filtExPtr := flag.String("filter-ext", "", "filter extensions")
 	tokenLimit := flag.Int("token-limit", -1, "token limit")
+	noTree := flag.Bool("no-tree", false, "no tree show")
 
 	flag.Parse()
 
@@ -250,10 +251,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	// printTree(nodes, "")
+	var res string
 	formatedTree := formatTree(nodes)
 	formatedCodeBase := formatFiles(nodes)
-	res := formatedTree + "\n" + formatedCodeBase
+
+	if *noTree {
+		res = formatedCodeBase
+	} else {
+		res = formatedTree + "\n" + formatedCodeBase
+	}
 
 	printRes := res
 	if *tokenLimit >= 0 {

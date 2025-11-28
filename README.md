@@ -1,6 +1,6 @@
 # CodeBasePrinter
 
-current version: 0.4.0
+current version: 0.5.0
 
 ## TODO
 
@@ -21,6 +21,8 @@ Usage of cbp:
         ignore extensions
   -ignore-fld string
         ignore folders
+  -no-tree
+        no tree show
   -token-limit int
         token limit (default -1)
 ```
