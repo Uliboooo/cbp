@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/pkoukk/tiktoken-go"
 	"golang.org/x/term"
 )
@@ -102,9 +103,12 @@ func formatTreeRec(node *FileNode, prefix string, builder *strings.Builder) {
 	if node == nil {
 		return
 	}
+
+	blue := color.New(color.FgBlue).SprintFunc()
+
 	name := node.Name
 	if node.IsDir {
-		name = fmt.Sprintf("\033[34m%s/\033[0m", name)
+		name = blue(name)
 	}
 
 	builder.WriteString(prefix)
@@ -214,14 +218,16 @@ func truncateTokens(s string, limit int) (*string, error) {
 var Version string
 
 func main() {
-	igExtPtr := flag.String("ignore-ext", "", "ignore extensions")
-	igFldPtr := flag.String("ignore-fld", "", "ignore folders")
-	filtExPtr := flag.String("filter-ext", "", "filter extensions")
-	tokenLimit := flag.Int("token-limit", -1, "token limit")
-	noTree := flag.Bool("no-tree", false, "no tree show")
+	igExtPtr := flag.String("ignore-ext", "", "ignore extensions. e.g., `lua,json`")
+	igFldPtr := flag.String("ignore-fld", "", "Ignore folders. e.g., use `release,test`")
+	filtExPtr := flag.String("filter-ext", "", "filter extensions. e.g. use `lua`")
+	tokenLimit := flag.Int("token-limit", -1, "token limit. e.g. use `10000`")
+	noTree := flag.Bool("no-tree", false, "hide tree.")
+	treeOpt := flag.String("tree", "", "tree option (none, only). e.g. `only`")
 	ver := flag.Bool("version", false, "show current version")
 
 	flag.Parse()
+	// fmt.Printf("%s\n\n", *treeOpt)
 
 	if *ver {
 		if Version == "" {
@@ -229,6 +235,18 @@ func main() {
 		}
 		fmt.Printf("current version: %s\n", Version)
 		os.Exit(0)
+	}
+
+	// flags
+	onlyTree := false
+
+	// foo := *treeOpt
+	// *treeOpt = strings.TrimSpace(foo)
+	switch *treeOpt {
+	case "none":
+		*noTree = true
+	case "only":
+		onlyTree = true
 	}
 
 	igExt := strings.Split(*igExtPtr, ",")
@@ -266,9 +284,11 @@ func main() {
 	formatedTree := formatTree(nodes)
 	formatedCodeBase := formatFiles(nodes)
 
-	if *noTree {
+	if onlyTree {
+		res = formatedTree
+	} else if *noTree {
 		res = formatedCodeBase
-	} else {
+	} else if !onlyTree {
 		res = formatedTree + "\n" + formatedCodeBase
 	}
 

@@ -1,6 +1,6 @@
 # CodeBasePrinter
 
-current version: 0.6.0
+current version: 0.7.0
 
 ## build notice
 
@@ -20,18 +20,20 @@ go build -ldflags="-X 'main.Version=${V}'" -o cbp
 
 ## Usage
 
-```bash
+```sh
 Usage of cbp:
-  -filter-ext string
-        filter extensions
-  -ignore-ext string
-        ignore extensions
-  -ignore-fld string
-        ignore folders
+  -filter-ext lua
+        filter extensions. e.g. use lua
+  -ignore-ext lua,json
+        ignore extensions. e.g., lua,json
+  -ignore-fld release,test
+        Ignore folders. e.g., use release,test
   -no-tree
-        no tree show
-  -token-limit int
-        token limit (default -1)
+        hide tree.
+  -token-limit 10000
+        token limit. e.g. use 10000 (default -1)
+  -tree only
+        tree option (none, only). e.g. only
   -version
         show current version
 ```
