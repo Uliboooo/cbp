@@ -1,5 +1,9 @@
 # Release note
 
+## 0.7.0: new feature; -tree option
+
+- feat: Add -tree flag to control code and tree output
+
 ## 0.6.0: new feature; version option
 
 - show version option
