@@ -5,8 +5,7 @@ current version: 0.7.0
 ## build notice
 
 ```zsh
-V=$(git describe --tags --always) 
-go build -ldflags="-X 'main.Version=${V}'" -o cbp
+V=$(git describe --tags --always) && go build -ldflags="-X 'main.Version=${V}'" -o cbp
 ```
 
 ## TODO
