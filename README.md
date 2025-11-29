@@ -2,7 +2,7 @@
 
 current version: 0.7.0
 
-## build notice
+## build
 
 ```zsh
 V=$(git describe --tags --always) && go build -ldflags="-X 'main.Version=${V}'" -o cbp
