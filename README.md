@@ -4,8 +4,10 @@ current version: 0.7.0
 
 ## build
 
+release build
+
 ```zsh
-V=$(git describe --tags --always) && go build -ldflags="-X 'main.Version=${V}'" -o cbp
+V=$(git describe --tags --always) && go build -ldflags="-s -w -X 'main.Version=${V}'" -trimpath -o cbp
 ```
 
 ## TODO
