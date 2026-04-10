@@ -1,8 +1,80 @@
+use clap::Parser;
 use std::{
-    env::args,
     fs,
-    path::{self, Path, PathBuf},
+    path::{Path, PathBuf},
 };
+
+#[derive(Debug, Parser)]
+#[command(author, version, about)]
+struct Cli {
+    path: Option<String>,
+
+    #[arg(long, value_delimiter = ',')]
+    ignore_extensions: Option<Vec<String>>,
+
+    #[arg(long, value_delimiter = ',')]
+    ignore_folders: Option<Vec<String>>,
+
+    #[arg(short, long)]
+    tree: Option<String>,
+}
+
+const DEFAULT_IGNORE_FDR: [&str; 3] = [".git", ".target", "node_modules"];
+
+impl Cli {
+    fn resolve(self) -> Config {
+        let path = self
+            .path
+            .map(PathBuf::from)
+            .unwrap_or(std::env::current_dir().unwrap().to_path_buf());
+        let ignore_e: Vec<PathBuf> = [self.ignore_extensions.unwrap_or_default().as_slice()]
+            .concat()
+            .iter()
+            .map(PathBuf::from)
+            .collect();
+
+        let ignore_folder = [
+            self.ignore_folders.unwrap_or_default().as_slice(),
+            &DEFAULT_IGNORE_FDR.map(|f| f.to_string()),
+        ]
+        .concat()
+        .iter()
+        .map(PathBuf::from)
+        .collect::<Vec<_>>();
+
+        let tree_opt = TreeOption::from(self.tree.unwrap_or("show".to_string()));
+
+        Config {
+            path,
+            ignore_extensions: ignore_e,
+            ignore_folders: ignore_folder,
+            tree: tree_opt,
+        }
+    }
+}
+
+struct Config {
+    path: PathBuf,
+    ignore_extensions: Vec<PathBuf>,
+    ignore_folders: Vec<PathBuf>,
+    tree: TreeOption,
+}
+
+enum TreeOption {
+    None,
+    Only,
+    Show,
+}
+
+impl From<String> for TreeOption {
+    fn from(value: String) -> Self {
+        match value.to_lowercase().as_str() {
+            "only" => TreeOption::Only,
+            "show" => TreeOption::Show,
+            _ => TreeOption::None,
+        }
+    }
+}
 
 const SEPARATOR: &str = "------------------------------------------------";
 
@@ -80,15 +152,13 @@ fn make_tree<T: AsRef<Path>>(root_path: T) -> FileNode {
     }
 }
 
+fn run(cli: Cli) {
+    let config = cli.resolve();
+    let tree = make_tree(config.path);
+    // TODO: impl .map() for FileNode
+}
+
 fn main() {
-    let path = &args().collect::<Vec<_>>()[1];
-
-    let tree = make_tree(path);
-    let print_tree = tree.print();
-    let vt = tree.flat();
-    let codes = read_sources(vt);
-
-    println!("File Tree");
-    println!("\n{}\n\n", print_tree);
-    println!("{}", codes);
+    let cli = Cli::parse();
+    run(cli);
 }
